@@ -1,0 +1,12 @@
+body { margin: 20px;}
+
+#nav { margin: 10px; height:80px; }
+
+ul.menu { float: left; }
+ul.menu a { display:block; color: #eee; text-decoration: none; }
+ul.menu, ul.menu li, ul.menu ul { list-style: none; margin: 0; padding: 0; border: 1px solid #fff; background: #2d2d2d; color: #eee;}
+ul.menu li { float: left; padding: 6px 15px;font-size: 20px;}
+ul.menu li:hover { position: relative; cursor: default; background: #4e4e4e; }
+ul.menu ul { visibility: hidden; position: absolute; top: 100%; left: 0; border: 1px solid #fff; }
+ul.menu ul li { float: none; font-size: 18px;}
+ul.menu li:hover > ul { visibility: visible }
