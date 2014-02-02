@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video and Facebook Search</title>
+        <link rel="stylesheet" type="text/css" href="../style/mystyle.css">
+
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <style type="text/css">
+    body {
+            padding-left: 5em;
+            font-family: Georgia, "Times New Roman",Times, serif;
+            color: purple;
+            background-color: #fff0f5;
+            background-attachment: fixed;
+         
+            background-repeat: no-repeat; 
+
+        } 
+
+
+
+    h1 {font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif }
+    p {font-size:large;
+    font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif} 
+
+
+        
+    </style>
+
+</head>
+
+
+<body>
+    
+    <nav>
+      <ul class="menu">
+        <li><a href="../index.html" title="Back to Wei Yu Liao's index">Home</a></li>
+        <li><a href="mailto:sofialiao@hotmail.com?subject=From your website" title="Open a new email in your email program">Contact Me</a>
+        </li>
+      </ul>
+    </nav>
+
+    <br><br><br>
+    <div id="fb-root"></div>
+    <script>
+        // Additional JS functions here
+        window.fbAsyncInit = function() {
+            FB.init({
+                    appId      : '158319480984438', // App ID
+                    channelUrl : 'http://www.sfu.ca/~weiyul/channel.html', // Channel File
+                    status     : true, // check login status
+                    cookie     : true, // enable cookies to allow the server to access the session
+                    xfbml      : true  // parse XFBML
+                    });
+            
+            // Additional init code here
+            FB.getLoginStatus(function(response) {
+                              if (response.status === 'connected') {
+                              // connected
+                              } else if (response.status === 'not_authorized') {
+                              // not_authorized
+                              } else {
+                              // not_logged_in
+                              }
+                              });
+            
+        };
+        
+        function login() {
+            FB.login(function(response) {
+                     if (response.authResponse) {
+                     // connected
+                     } else {
+                     // cancelled
+                     }
+                     });
+        }
+        
+        // Load the SDK Asynchronously
+        (function(d){
+         var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement('script'); js.id = id; js.async = true;
+         js.src = "//connect.facebook.net/en_US/all.js";
+         ref.parentNode.insertBefore(js, ref);
+         }(document));
+        </script>
+    
+
+    
+    
+    
+    <h1>Searching</h1>
+    
+
+
+<table>
+<tr>
+    <th>Find Videos on Youtube:</th>
+    <th>Find People on Facebook:</th>
+</tr>
+<tr>
+   
+        <td>   <p>
+            <input type="text" id='youtube_input' />
+            <input type="submit" value="Youtube Search" id="youtube_search"> </p></td>
+                
+        <td>    <p>
+                    <input type="text" id='facebook_input' />
+                    <input type="submit" value="Facebook Search" id="facebook_search"></p></td>
+    
+
+</tr>
+<tr>
+    <td><div id="result1"></div></td>
+    <td><div id="result2"></div></td>
+</tr>
+</table>
+
+<script type="text/javascript">
+
+jQuery('#youtube_search').click(function() {
+    var search_input = $('#youtube_input').val();
+    var keyword= encodeURIComponent(search_input);
+    // Youtube API
+    var youtube_url='http://gdata.youtube.com/feeds/api/videos?q=' + keyword+'&format=5&max-results=4&v=2&alt=jsonc';
+
+    fetchYouTube(youtube_url);
+});
+
+jQuery('#facebook_search').click(function() {
+    var search_input2 = $('#facebook_input').val();
+    // Youtube API
+  var facebook_url='https://graph.facebook.com/search?q='+search_input2+'&type=user&access_token=AAAAAAITEghMBAFWMQ8ORTp4j93s6lBB8uZBnoMgSC8WiM8n72LCRvtjLXyGTVZBkVZCs2SmmFDrmWAyeeUCvKPlsxHZBYEB8ZAcnZBGQy5nAZDZD';
+  /*var facebook_url='https://graph.facebook.com/search?q='+search_input2+'&type=user';*/
+
+    fetchFacebook(facebook_url);
+});
+
+
+
+
+
+ function fetchYouTube(url) {
+     jQuery.ajax ({
+         url: url,
+         dataType: "jsonp",
+         success: showYouTube
+     });
+ }
+
+
+function fetchFacebook(url) {
+	jQuery.ajax({
+		url: url,
+		dataType: 'jsonp',
+		success: showFacebook
+	});
+}
+
+function showYouTube(response) {
+     jQuery('#result').empty();
+
+    if(response.data.items)
+    {
+        jQuery.each(response.data.items, function(i,data)
+        {
+            
+
+            // IFRAME Embed for YouTube
+            var video_frame="<iframe width='640' height='385' src='http://www.youtube.com/embed/"+data.id+"' frameborder='0' type='text/html'></iframe>";
+
+            var showYouTube="<div id='title'>"+data.title+"</div><div>"+video_frame;
+
+            jQuery("#result1").append(showYouTube);
+
+        });
+    }
+    else
+    {
+        jQuery("#result1").html("<div id='no'>No Video Found!!!!!!!!!</div>");
+    }
+} 
+
+function showFacebook(response) {
+     jQuery('#result').empty();
+
+    if(response.data)
+    {
+        jQuery.each(response.data, function(i,data)
+        {
+            
+
+    
+        var html = 
+            '<p>' +
+            data.name +
+            '<br/>' +
+            '<a href="https://facebook.com/' + data.id +'">' +
+             'http://facebook.com/' + data.id + '</a>' +
+            '</p>';
+
+            jQuery("#result2").append(html);
+
+        });
+    }
+    else
+    {
+        jQuery("#result2").html("<div id='no'>please log in facebook</div>");
+    }
+} 
+
+
+</script>
+
+</body>
+</html>
