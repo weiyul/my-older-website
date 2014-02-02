@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    <title>Tim Horton with WiFi Locator using PHP, MySQL and Google Maps</title>
+    <link rel="stylesheet" type="text/css" href="../style/mystyle.css">
+    <meta name="description" content="Tim Horton with WiFi Locator using PHP, MySQL and Google Maps" />
+    <meta name="keywords" content="javascript, web, ajax, jquery, store locator, google maps" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+
+    <style type="text/css">
+        .panel-item { padding: 5px; }
+        .panel-item:hover { background-color: grey; }
+        body {
+            padding-left: 5em;
+            font-family: Georgia, "Times New Roman",Times, serif;
+            color: purple;
+            background-color:#fffacd;
+            background-attachment: fixed;
+         
+            background-repeat: no-repeat; 
+
+        } 
+
+
+
+        h1 {font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif }
+        p {font-size:large;
+        font-family: Helvetica, Geneva, Arial, SunSans-Regular, sans-serif} 
+
+    </style>
+
+    </head>
+
+    <body>
+        <nav>
+          <ul class="menu">
+            <li><a href="../index.html" title="Back to Wei Yu Liao's index">Home</a></li>
+            <li><a href="mailto:sofialiao@hotmail.com?subject=From your website" title="Open a new email in your email program">Contact Me</a>
+            </li>
+          </ul>
+        </nav>
+
+        <br><br><br>
+
+        <h1>Tim Horton with WiFi Locator using PHP, MySQL and Google Maps</h1>
+        <p>
+        This is a simple store locator demo searching for Tim Horton with WiFi. 
+        It issues an AJAX request when you click the button.
+        The result will be display on the map when the response is ready.
+        </p>
+
+        <div>
+            <input type="text" value="Vancouver" id="address">
+            <input type="submit" value="Search" id="search">
+        </div>
+
+        <div id="map_canvas" style="height:600px;width:800px;float:left">
+        </div>
+        <div id="map-panel" style="height:600px;width:300px;float:left;margin-left:10px;overflow:auto">
+        </div>
+
+
+        <script type="text/javascript">
+
+        var map = null;
+        var geocoder = null;
+        var markers = {};
+        var infoWindow = null;
+
+        jQuery('#search').click(function() {
+            var address = jQuery('#address').val() || 'Vancouver';
+            if (map === null)
+                initializeMap();
+            searchAddress(address);
+        });
+
+        jQuery('.panel-item').live("click", function(e) {
+            var id = jQuery(this).attr('store-id');
+            var marker = markers[id];
+            
+            google.maps.event.trigger(marker, 'click');
+        });
+
+        function initializeMap() {
+            var mapOptions = {
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
+            google.maps.event.addListener(map, "idle", function(event) {
+                searchStoresBounds();
+            });
+            
+            geocoder = new google.maps.Geocoder();
+            infoWindow = new google.maps.InfoWindow();
+            
+        }
+
+        function searchAddress(address) {
+            geocoder.geocode( { 'address': address}, function(results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    var latlng = results[0].geometry.location;
+                    map.setCenter(latlng);
+                    
+                    searchStoresBounds(map.getBounds().toUrlValue());
+                    
+                } else {
+                    alert('Geocode was failed: ' + status);
+                }
+            });
+        }
+
+        function searchStoresBounds() {
+            if (!map.getBounds())
+                return;
+            var bounds = map.getBounds().toUrlValue();
+            var url = './store-ajax-bounds.php';
+            var parameter = { bounds: bounds };
+            jQuery.ajax({
+                url: url,
+                data: parameter,
+                dataType: 'json',
+                success: showStores
+            });
+        }
+
+        function showStores(data, status, xhr) {
+            if (data['status'] != 'OK')
+                return;
+                
+            var id;
+            
+            // add markers for new stores
+            for (id in data['data']) {
+                if (markers[id] === undefined)
+                    createMarker(id, data['data'][id]);
+            }
+
+            var b = map.getBounds();
+            // remove markers out of the bounds
+            for (id in markers) {
+                if (! b.contains(markers[id].getPosition())) {
+                    markers[id].setMap(null);
+                    delete markers[id];
+                    jQuery('.panel-item').remove('[store-id="' + id +'"]');
+                    
+                }
+            }
+        }
+
+        function createMarker(id, store) {
+            var latlng = new google.maps.LatLng(
+                        parseFloat(store['lat']),
+                        parseFloat(store['lng'])
+                    );
+            var html = "<b>" + store['address'] + "</b>";
+            var marker = new google.maps.Marker({
+                    map: map,
+                    position: latlng
+                });
+            google.maps.event.addListener(marker, 'click', function() {
+                    infoWindow.setContent(html);
+                    infoWindow.open(map, marker);
+                });
+            markers[id] = marker;
+            
+            var item = '<div class="panel-item" store-id="' + id + '"> <b>' + 
+                        store['address'] + '</b> </div>';
+
+            jQuery('#map-panel').append(item);
+        }
+
+        </script>
+
+    </body>
+</html>
